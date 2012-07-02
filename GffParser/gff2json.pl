@@ -19,8 +19,24 @@ $gffio->close();
 my $nodes;
 my $c = 1;
 foreach my $feat (sort {$a->start <=> $b->start} @feats) {
-    $c++;
-    push(@$nodes, { s => $feat->start, e => $feat->end, n => $feat->primary_tag, i =>  $c } );
+    
+    my($gene_id, @junk);
+    if($feat->has_tag('locus_tag'))
+    {
+      ($gene_id, @junk) = $feat->get_tag_values('locus_tag');
+    }
+    elsif($feat->has_tag('ID'))
+    {
+      ($gene_id, @junk) = $feat->get_tag_values('ID');
+    }
+    else
+    {
+      $gene_id = $c;
+      $c++;
+    }
+    $gene_id =~ s/^"|"$//g;    
+    
+    push(@$nodes, { s => $feat->start, e => $feat->end, n => $feat->primary_tag, i =>  $gene_id } );
 }
 
 
