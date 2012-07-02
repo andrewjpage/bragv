@@ -13,7 +13,7 @@ var debug = true;
 BRAGV.Viewer = function(divName)
 {
 	this.offset = 0;
-	this.numBases = 1000;
+	this.numBases = 100000;
 	
 	this.start = 0;
 	this.end = 0;
@@ -29,10 +29,10 @@ BRAGV.Viewer = function(divName)
 	
 	ctx = $('canvas', div)[0].getContext('2d');
 	
-	this.baseWidth = this.numBases / (w - 40.0);
+	this.baseWidth = (w - 40.0) / this.numBases;
 	this.trackWidth = w - 40;
 	
-	if(debug)
+	/*if(debug)
 	{
 		this.tracks["track1"] = new BRAGV.Track();
 		this.tracks["track2"] = new BRAGV.Track();
@@ -40,8 +40,8 @@ BRAGV.Viewer = function(divName)
 		this.tracks["track4"] = new BRAGV.Track();
 		this.tracks["track5"] = new BRAGV.Track();
 		this.tracks["track6"] = new BRAGV.Track();
-	}
-	
+	}*/
+	this.resetViewer();
 	this.drawTicks();
 	this.drawTracks(w);
 };
@@ -87,19 +87,44 @@ BRAGV.Viewer.prototype = {
 				var features = this.tracks[t].features;
 				var count = features.length;
 				
-				for(var j = count; j--; )
+				for(var j = 0; j != count; j++)
 				{
+					if(features[j].s > this.offset + this.numBases) return;
+					if(features[j].e < this.offset) continue;
+					if(features[j].s % 3 != 1) continue;
+					
 					if(debug){
 						console.debug('drawing ' + features[j].i);
+						console.debug(this.baseWidth);
 						console.debug((40 + (features[j].s * this.baseWidth)));
 						console.debug(tracky);
-						console.debug( (features[j].e - features[j].s) * this.baseWidth);
+						console.debug((features[j].e - features[j].s) * this.baseWidth);
 					}
 					
 					ctx.fillStyle = 'rgba(255, 0, 0, 1)';
 					ctx.fillRect(40 + (features[j].s * this.baseWidth), tracky, 40 + ((features[j].e - features[j].s)) * this.baseWidth, trackheight);
+					ctx.strokeRect(40 + (features[j].s * this.baseWidth), tracky, 40 + ((features[j].e - features[j].s)) * this.baseWidth, trackheight);
 				}
 			}
+		},
+		loadTracks : function(url)
+		{
+			viewer = this;
+			$.getJSON(url, null, function(data)
+				{	
+				 viewer.addTracks(data);
+				}
+			);
+		},
+		addTracks : function(obj)
+		{
+			if(!viewer.tracks["track1"])viewer.tracks["track1"] = new BRAGV.Track('track1');
+			viewer.tracks["track1"].features = obj;
+			this.drawTracks(this.trackWidth);
+		},
+		resetViewer : function()
+		{
+			ctx.clearRect(0,0, this.trackWidth + 40, 400);
 		}
 };
 
