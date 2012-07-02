@@ -1,0 +1,17 @@
+// features are sorted by start coordinate
+{
+	[
+		{
+			"s": 1,
+	  		"e": 10,
+  			"n": "ABC",
+  			"i": "EFG"
+		},
+		{
+  			"s": 14,          
+  			"e": 20,                 
+  			"n": "HIJ",
+  			"i": "LMN"
+		},
+	]
+}
