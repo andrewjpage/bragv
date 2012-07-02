@@ -30,6 +30,7 @@ BRAGV.Viewer = function(divName)
 	ctx = $('canvas', div)[0].getContext('2d');
 	
 	this.baseWidth = this.numBases / (w - 40.0);
+	this.trackWidth = w - 40;
 	
 	if(debug)
 	{
@@ -41,16 +42,38 @@ BRAGV.Viewer = function(divName)
 		this.tracks["track6"] = new BRAGV.Track();
 	}
 	
+	this.drawTicks();
 	this.drawTracks(w);
 };
 
 BRAGV.Viewer.prototype = {
+		drawTicks : function()
+		{
+			var start = 40;
+			var end = this.trackWidth + 39;
+			
+			ctx.beginPath();
+			ctx.moveTo(start, 10);
+			ctx.lineTo(start, 20);
+			ctx.stroke();
+			
+			ctx.beginPath();
+			ctx.moveTo(end, 10);
+			ctx.lineTo(end, 20);
+			ctx.stroke();
+			
+			var txt = (this.offset).toString();
+			var wt = ctx.measureText(txt).width;
+			ctx.fillText(this.offset, start-wt, 10);
+			var txt = (this.offset + this.numBases).toString();
+			var wt = ctx.measureText(txt).width;
+			ctx.fillText(txt, end-wt, 10);
+		},
 		drawTracks : function(w)
 		{
-			var i = 0;
+			var i = 1;
 			var trackheight = 20;
 			var padding = 3;
-			
 			
 			
 			for(var t in this.tracks)
