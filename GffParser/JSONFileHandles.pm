@@ -18,21 +18,21 @@ sub _build_file_handles
   
   if(defined($self->six_frames) && $self->six_frames == 1)
   {
-    $output_file_handles{1}{0} = $self->_open_file('f',0);
-    $output_file_handles{1}{1} = $self->_open_file('f',1);
-    $output_file_handles{1}{2} = $self->_open_file('f',2);
-    $output_file_handles{-1}{0} = $self->_open_file('r',0);
-    $output_file_handles{-1}{1} = $self->_open_file('r',1);
-    $output_file_handles{-1}{2} = $self->_open_file('r',2);
+    $output_file_handles{1}{0} = $self->_open_file('p',0);
+    $output_file_handles{1}{1} = $self->_open_file('p',1);
+    $output_file_handles{1}{2} = $self->_open_file('p',2);
+    $output_file_handles{-1}{0} = $self->_open_file('n',0);
+    $output_file_handles{-1}{1} = $self->_open_file('n',1);
+    $output_file_handles{-1}{2} = $self->_open_file('n',2);
   }
   else
   {
     $output_file_handles{1}{0} = $self->_open_file('all',"frames");
-    $output_file_handles{1}{1} = $output_file_handles{f}{0} ;
-    $output_file_handles{1}{2} = $output_file_handles{f}{0} ;
-    $output_file_handles{-1}{0} = $output_file_handles{f}{0} ;
-    $output_file_handles{-1}{1} = $output_file_handles{f}{0} ;
-    $output_file_handles{-1}{2} = $output_file_handles{f}{0} ;
+    $output_file_handles{1}{1} = $output_file_handles{1}{0} ;
+    $output_file_handles{1}{2} = $output_file_handles{1}{0} ;
+    $output_file_handles{-1}{0} = $output_file_handles{1}{0} ;
+    $output_file_handles{-1}{1} = $output_file_handles{1}{0} ;
+    $output_file_handles{-1}{2} = $output_file_handles{1}{0} ;
   }
   return \%output_file_handles;
 }
