@@ -25,21 +25,23 @@ use JSON;
 use Getopt::Long;
 use JSONFileHandles;
 use GffUtil;
+use Data::Dumper;
 
-my($file, $mode, $help );
+my($file, $mode, $help, $name );
 
 GetOptions(
    'f|file=s'  => \$file,
    'm|six_frames'       => \$mode,
-
+   'n|name=s'  => \$name,
    'h|help'                    => \$help,
     );
 
-($file && (-e $file)) or die <<USAGE;
+($file && (-e $file) && $name) or die <<USAGE;
 
 Usage: $0
   -f|file         <file>
   -m|six_frames   <flag for six frames>
+  -n|name         <track name>
   -h|help         <print this message>
 
 produces a json file
@@ -54,23 +56,35 @@ my @feats;
 while($feature = $gffio->next_feature()) {
     push(@feats, $feature);   
 }
-$gffio->close();
+
 
 my $gff_util = GffUtil->new(gff => $gffio);
 
+
+my @all_tracks;
 
 
 #create the  perl datastructure, sort by start position
 my $nodes;
 my $c = 1;
-my %file_handles = %{JSONFileHandles->new(input_filename => $file, six_frames => $mode)->file_handles};
-my %json_six_frames;
-$json_six_frames{1}{0} = [];
-$json_six_frames{1}{1} = [];
-$json_six_frames{1}{2} = [];
-$json_six_frames{-1}{0} = [];
-$json_six_frames{-1}{1} = [];
-$json_six_frames{-1}{2} = [];
+
+$gffio = Bio::Tools::GFF->new(-file => $file , -gff_version => 3);
+while (my $bio_locatable_seq = $gffio->next_segment) {
+  
+  my $details = {name => $name, chromosome_name => $bio_locatable_seq->id,length => $bio_locatable_seq->end,strand => 1,frame => 0};
+  push(@all_tracks, $details);
+  $details = {name => $name, chromosome_name => $bio_locatable_seq->id,length => $bio_locatable_seq->end,strand => 1,frame => 1};
+  push(@all_tracks, $details);
+  $details = {name => $name, chromosome_name => $bio_locatable_seq->id,length => $bio_locatable_seq->end,strand => 1,frame => 2};
+  push(@all_tracks, $details);
+  $details = {name => $name, chromosome_name => $bio_locatable_seq->id,length => $bio_locatable_seq->end,strand => -1,frame => 0};
+  push(@all_tracks, $details);
+  $details = {name => $name, chromosome_name => $bio_locatable_seq->id,length => $bio_locatable_seq->end,strand => -1,frame => 1};
+  push(@all_tracks, $details);
+  $details = {name => $name, chromosome_name => $bio_locatable_seq->id,length => $bio_locatable_seq->end,strand => -1,frame => 2};
+  push(@all_tracks, $details);
+
+}
 
 foreach my $feat (sort {$a->start <=> $b->start} @feats) {
     next if !($feat->primary_tag eq 'CDS' ||   $feat->primary_tag eq 'polypeptide');
@@ -100,21 +114,33 @@ foreach my $feat (sort {$a->start <=> $b->start} @feats) {
     {
        $strand = 1;
        $frame = 0;
-       
     }
-    push(@{$json_six_frames{$strand}{$frame}}, { s => $feat->start, e => $feat->end, n => $feat->primary_tag, i =>  $gene_id } );
+    
+    my $feature_array = get_feature_array($strand, $frame, $feat->seq_id, \@all_tracks);
+    push(@{$feature_array}, { s => $feat->start, e => $feat->end, n => $feat->primary_tag, i =>  $gene_id } );
 
 }
 
-for my $strand ((-1,1))
+open(OUT, "+>", $file.".json");
+my $jsontext = encode_json(\@all_tracks);
+print OUT $jsontext;
+
+sub get_feature_array
 {
-  for my $frame ((0,1,2))
+  my($strand, $frame, $seq_id, $all_tracks) = @_;
+  
+  for my $track (@$all_tracks)
   {
-    if(defined($json_six_frames{$strand}{$frame}) && @{$json_six_frames{$strand}{$frame}} > 0)
+
+    if($strand == $track->{strand} && $frame == $track->{frame} && $seq_id eq $track->{chromosome_name} )
     {
-      my $jsontext = to_json($json_six_frames{$strand}{$frame});
-      my $fh = $file_handles{$strand}{$frame};
-      print {$fh} $jsontext;
+      unless(defined($track->{features}))
+      {
+        $track->{features} = [];
+      }
+      
+      return $track->{features};
     }
   }
+  return undef;
 }
