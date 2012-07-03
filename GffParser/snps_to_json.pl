@@ -25,6 +25,9 @@ Usage: $0
 produces a json file
 USAGE
 
+my %all_tracks;
+
+
 my $nodes;
 my $c = 1;
 my %snp_sites;
@@ -34,8 +37,16 @@ while(<IN>)
   chomp;
   my $line = $_;
   my @snp_details  = split(/\t/,$line);
+  my $name = $snp_details[1];
+
+  unless(defined($all_tracks{name}))
+  {
+    my $details = {name => $name, chromosome_name => "",length => 0,strand => 1,frame => 0};
+    $all_tracks{$name} =  $details;
+    $all_tracks{$name}{features} = [];
+  }
   
-  push(@{$snp_sites{$snp_details[1]}}, { s => $snp_details[0], e => $snp_details[0], n => "SNP", i =>  $c } );
+  push(@{$all_tracks{$name}{features}}, { s => $snp_details[0], e => $snp_details[0], n => "SNP", i =>  $c } );
   $c++;
 }
 
