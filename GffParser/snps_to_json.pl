@@ -39,21 +39,19 @@ while(<IN>)
   my @snp_details  = split(/\t/,$line);
   my $name = $snp_details[1];
 
-  unless(defined($all_tracks{name}))
+  unless(defined($all_tracks{$name}))
   {
-    my $details = {name => $name, chromosome_name => "",length => 0,strand => 1,frame => 0};
-    $all_tracks{$name} =  $details;
-    $all_tracks{$name}{features} = [];
+    my $details = {name => $name, chromosome_name => "",length => 0,strand => 1,frame => 0, features => []};
+    $all_tracks{$name} = $details ;
   }
   
   push(@{$all_tracks{$name}{features}}, { s => $snp_details[0], e => $snp_details[0], n => "SNP", i =>  $c } );
   $c++;
 }
 
-for my $lane_name (keys %snp_sites)
-{
-      my $jsontext = to_json($snp_sites{$lane_name});
-      open(my $fh, "+>", $lane_name.".snps.json");
+my @snp_sites = values %all_tracks;
+
+      my $jsontext = encode_json(\@snp_sites);
+      open(my $fh, "+>", $file.".snps.json");
       print {$fh} $jsontext;
       close($fh);
-}
