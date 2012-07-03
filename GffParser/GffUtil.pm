@@ -67,7 +67,7 @@ sub return_frame_and_strand_of_feature {
         $feature_frame = $feature_start_position % 3;
     }
     
-    return ($feature_strand, $feature_frame);
+    return ($feature_frame, $feature_strand);
     
 }
 

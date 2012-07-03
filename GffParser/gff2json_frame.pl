@@ -24,13 +24,13 @@ use Bio::Tools::GFF;
 use JSON;
 use Getopt::Long;
 use JSONFileHandles;
-
+use GffUtil;
 
 my($file, $mode, $help );
 
 GetOptions(
    'f|file=s'  => \$file,
-   'm|six_frames=s'       => \$mode,
+   'm|six_frames'       => \$mode,
 
    'h|help'                    => \$help,
     );
@@ -55,6 +55,8 @@ while($feature = $gffio->next_feature()) {
     push(@feats, $feature);   
 }
 $gffio->close();
+
+my $gff_util = GffUtil->new(gff => $gffio);
 
 
 
@@ -90,8 +92,8 @@ foreach my $feat (sort {$a->start <=> $b->start} @feats) {
     $gene_id =~ s/^"|"$//g;    
     
 
-    my $strand = 1;
-    my $frame = 0;
+    my ($frame, $strand) = $gff_util->return_frame_and_strand_of_feature($feat);
+
     my $json_frame ;
     next if $strand == 0;
     if($mode == 0)
@@ -104,7 +106,7 @@ foreach my $feat (sort {$a->start <=> $b->start} @feats) {
 
 }
 
-for my $strand ((0,1))
+for my $strand ((-1,1))
 {
   for my $frame ((0,1,2))
   {
